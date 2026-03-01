@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
-import { loadData, saveData, generateId } from './utils/storage';
+import { loadData, saveData, generateId, getDemoData } from './utils/storage';
 import Sphere from './components/Sphere';
 import AddSphereForm from './components/AddSphereForm';
+import Onboarding from './components/Onboarding';
 import './App.css';
 
 function App() {
+  const [onboardingDone, setOnboardingDone] = useState(
+    () => localStorage.getItem('step-next-onboarding') === 'true'
+  );
   const [data, setData] = useState(() => loadData());
 
   useEffect(() => {
@@ -69,6 +73,25 @@ function App() {
   function handleReset() {
     localStorage.removeItem('step-next-data');
     setData(loadData());
+  }
+
+  /**
+   * Called when onboarding finishes (either completed or skipped).
+   * userSphere is the sphere the user created, or null if they skipped.
+   * Loads demo data and prepends the user's sphere if present.
+   */
+  function handleOnboardingComplete(userSphere) {
+    const demo = getDemoData();
+    const newData = userSphere
+      ? { spheres: [userSphere, ...demo.spheres] }
+      : demo;
+    saveData(newData);
+    setData(newData);
+    setOnboardingDone(true);
+  }
+
+  if (!onboardingDone) {
+    return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
   return (

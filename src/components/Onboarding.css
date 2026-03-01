@@ -1,0 +1,222 @@
+/* ========================================================================
+   Onboarding — Full-screen 3-step flow for first-time users
+   ======================================================================== */
+
+.onboarding {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: #0f0f23;
+  position: relative;
+}
+
+/* --- Step indicator dots --- */
+
+.onboarding__dots {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.onboarding__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #2a2a4a;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.onboarding__dot--active {
+  background: #6366f1;
+  transform: scale(1.2);
+}
+
+.onboarding__dot--completed {
+  background: #10b981;
+}
+
+/* --- Content container --- */
+
+.onboarding__content {
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  animation: onboarding-fade-in 0.4s ease-out;
+}
+
+@keyframes onboarding-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Welcome step (Step 1) --- */
+
+.onboarding__title {
+  font-size: 28px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #6366f1, #10b981, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 8px 0;
+}
+
+.onboarding__subtitle {
+  font-size: 16px;
+  color: #818cf8;
+  font-weight: 500;
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+.onboarding__description {
+  font-size: 14px;
+  color: #9ca3af;
+  line-height: 1.6;
+  margin: 0 0 32px 0;
+}
+
+/* --- Buttons --- */
+
+.onboarding__btn-primary {
+  background: #6366f1;
+  color: white;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  display: inline-block;
+}
+
+.onboarding__btn-primary:hover {
+  background: #4f46e5;
+}
+
+.onboarding__btn-primary:active {
+  transform: scale(0.97);
+}
+
+.onboarding__btn-primary:disabled {
+  background: #374151;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.onboarding__skip {
+  background: none;
+  border: none;
+  color: #4b5563;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 24px;
+  padding: 8px 16px;
+  transition: color 0.2s;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.onboarding__skip:hover {
+  color: #9ca3af;
+}
+
+/* --- Step 2: Sphere creation (embedded wizard) --- */
+
+.onboarding__step-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #e5e7eb;
+  margin: 0 0 20px 0;
+}
+
+.onboarding__wizard-wrap {
+  text-align: left;
+  background: #1a1a2e;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #2a2a4a;
+}
+
+/* Override the AddSphereForm styles within onboarding to always show the form (not button) */
+.onboarding__wizard-wrap .add-sphere-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* --- Step 3: Complete first step --- */
+
+.onboarding__sphere-wrap {
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.onboarding__sphere-wrap .sphere {
+  margin-bottom: 0;
+}
+
+/* Hide delete button and add-step in onboarding context */
+.onboarding__sphere-wrap .sphere__delete {
+  display: none;
+}
+
+.onboarding__sphere-wrap .sphere__actions {
+  display: none;
+}
+
+.onboarding__hint {
+  font-size: 13px;
+  color: #818cf8;
+  margin: 0 0 20px 0;
+  animation: onboarding-hint-pulse 2s ease-in-out infinite;
+}
+
+@keyframes onboarding-hint-pulse {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.onboarding__done-wrap {
+  text-align: center;
+  margin-top: 16px;
+  animation: onboarding-fade-in 0.4s ease-out;
+}
+
+.onboarding__congrats {
+  font-size: 15px;
+  color: #10b981;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+}
+
+/* --- Responsive --- */
+
+@media (max-width: 500px) {
+  .onboarding__title {
+    font-size: 24px;
+  }
+
+  .onboarding__subtitle {
+    font-size: 14px;
+  }
+
+  .onboarding__wizard-wrap {
+    padding: 16px;
+  }
+}
