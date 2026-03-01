@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { loadData, saveData, generateId, exportData, validateImportData, getDemoData } from './utils/storage';
 import Sphere from './components/Sphere';
 import AddSphereForm from './components/AddSphereForm';
+import TemplateLibrary from './components/TemplateLibrary';
 import Onboarding from './components/Onboarding';
 import './App.css';
 
@@ -63,6 +64,32 @@ function App() {
           order: 2,
         },
       ],
+    };
+    setData((prev) => ({
+      ...prev,
+      spheres: [...prev.spheres, newSphere],
+    }));
+  }
+
+  /**
+   * Creates a sphere from a template definition.
+   * First step (order 0) is auto-completed (endowed progress).
+   * All steps get unique IDs and proper structure.
+   */
+  function handleAddFromTemplate(template) {
+    const newSphere = {
+      id: generateId(),
+      name: template.name,
+      level: 1,
+      steps: template.steps.map((step) => ({
+        id: generateId(),
+        title: step.title,
+        description: '',
+        type: step.type,
+        milestone: step.milestone || null,
+        completed: step.order === 0,
+        order: step.order,
+      })),
     };
     setData((prev) => ({
       ...prev,
@@ -154,6 +181,7 @@ function App() {
 
       <div className="app__footer">
         <AddSphereForm onAdd={handleAddSphere} />
+        <TemplateLibrary onSelectTemplate={handleAddFromTemplate} />
 
         <div className="app__data-section">
           <span className="app__data-label">Дані</span>
