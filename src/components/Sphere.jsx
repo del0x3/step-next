@@ -8,8 +8,8 @@ import './Sphere.css';
 /**
  * Builds the progress text including hidden step count when applicable.
  * Examples:
- *   "Крок 1 з 7 -- почни зараз!"
- *   "Крок 3 з 7 -- ще лише 4! (2 приховано)"
+ *   "Крок 1 з 7 — почни зараз!"
+ *   "Крок 3 з 7 — ще лише 4! (2 приховано)"
  */
 function getProgressText(completed, total, hiddenCount) {
   if (total === 0) return '';

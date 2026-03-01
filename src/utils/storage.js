@@ -183,6 +183,57 @@ export function saveData(data) {
 }
 
 /**
+ * Validates that imported data has the correct structure.
+ * Returns { valid: true, data } on success, or { valid: false, error } on failure.
+ */
+export function validateImportData(raw) {
+  let parsed;
+  try {
+    parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  } catch {
+    return { valid: false, error: 'Файл не є валідним JSON.' };
+  }
+
+  if (!parsed || typeof parsed !== 'object') {
+    return { valid: false, error: 'Дані повинні бути об\'єктом.' };
+  }
+
+  if (!Array.isArray(parsed.spheres)) {
+    return { valid: false, error: 'Відсутній масив "spheres".' };
+  }
+
+  for (let i = 0; i < parsed.spheres.length; i++) {
+    const sphere = parsed.spheres[i];
+    if (!sphere.id || typeof sphere.id !== 'string') {
+      return { valid: false, error: `Сфера #${i + 1}: відсутній або невалідний "id".` };
+    }
+    if (!sphere.name || typeof sphere.name !== 'string') {
+      return { valid: false, error: `Сфера #${i + 1}: відсутнє або невалідне "name".` };
+    }
+    if (!Array.isArray(sphere.steps)) {
+      return { valid: false, error: `Сфера "${sphere.name}": відсутній масив "steps".` };
+    }
+  }
+
+  return { valid: true, data: parsed };
+}
+
+/**
+ * Exports all app data as a JSON file download.
+ */
+export function exportData() {
+  const data = loadData();
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `step-next-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/**
  * Returns the demo data object.
  * Used by onboarding flow to load demo data after completion/skip.
  */

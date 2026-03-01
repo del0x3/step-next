@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { loadData, saveData, generateId, getDemoData } from './utils/storage';
+import { useState, useEffect, useRef } from 'react';
+import { loadData, saveData, generateId, exportData, validateImportData, getDemoData } from './utils/storage';
 import Sphere from './components/Sphere';
 import AddSphereForm from './components/AddSphereForm';
 import Onboarding from './components/Onboarding';
@@ -70,6 +70,46 @@ function App() {
     }));
   }
 
+  const fileInputRef = useRef(null);
+  const [importError, setImportError] = useState('');
+
+  function handleExport() {
+    exportData();
+  }
+
+  function handleImportClick() {
+    setImportError('');
+    fileInputRef.current.value = '';
+    fileInputRef.current.click();
+  }
+
+  function handleFileChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = validateImportData(event.target.result);
+      if (!result.valid) {
+        setImportError(result.error);
+        return;
+      }
+
+      const confirmed = window.confirm(
+        'Це замінить всі поточні дані. Продовжити?'
+      );
+      if (!confirmed) return;
+
+      saveData(result.data);
+      setData(result.data);
+      setImportError('');
+    };
+    reader.onerror = () => {
+      setImportError('Не вдалося прочитати файл.');
+    };
+    reader.readAsText(file);
+  }
+
   function handleReset() {
     localStorage.removeItem('step-next-data');
     setData(loadData());
@@ -114,6 +154,29 @@ function App() {
 
       <div className="app__footer">
         <AddSphereForm onAdd={handleAddSphere} />
+
+        <div className="app__data-section">
+          <span className="app__data-label">Дані</span>
+          <div className="app__data-buttons">
+            <button className="app__data-btn" onClick={handleExport}>
+              Експорт даних
+            </button>
+            <button className="app__data-btn" onClick={handleImportClick}>
+              Імпорт даних
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              className="app__file-input"
+              onChange={handleFileChange}
+            />
+          </div>
+          {importError && (
+            <p className="app__import-error">{importError}</p>
+          )}
+        </div>
+
         <button className="app__reset" onClick={handleReset}>
           Скинути до демо-даних
         </button>

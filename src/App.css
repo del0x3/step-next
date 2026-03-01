@@ -46,6 +46,54 @@ body {
   margin-top: 16px;
 }
 
+/* Data export/import section */
+.app__data-section {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.app__data-label {
+  display: block;
+  color: #4b5563;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.app__data-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.app__data-btn {
+  background: none;
+  border: 1px solid #374151;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 6px 16px;
+  border-radius: 6px;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.app__data-btn:hover {
+  border-color: #6366f1;
+  color: #e5e7eb;
+}
+
+.app__file-input {
+  display: none;
+}
+
+.app__import-error {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+/* Reset button */
 .app__reset {
   background: none;
   border: none;
