@@ -234,7 +234,7 @@ export function exportData() {
 }
 
 /**
- * Returns a fresh copy of DEMO_DATA with new generated IDs.
+ * Returns the demo data object.
  * Used by onboarding flow to load demo data after completion/skip.
  */
 export function getDemoData() {
