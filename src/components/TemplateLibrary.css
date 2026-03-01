@@ -1,0 +1,110 @@
+/* ========================================================================
+   TemplateLibrary -- Grid of domain template cards
+   ======================================================================== */
+
+.template-library {
+  margin-top: 16px;
+}
+
+.template-library__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.template-library__divider::before,
+.template-library__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #2a2a4a;
+}
+
+.template-library__divider-text {
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* --- Card grid --- */
+
+.template-library__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* --- Individual card --- */
+
+.template-card {
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 12px;
+  padding: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  font-family: inherit;
+}
+
+.template-card:hover {
+  border-color: #6366f1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.template-card:active {
+  transform: translateY(0);
+}
+
+.template-card__icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.template-card__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin: 0;
+}
+
+.template-card__desc {
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.template-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.template-card__step-count {
+  font-size: 11px;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.template-card__add-label {
+  font-size: 11px;
+  color: #818cf8;
+  font-weight: 600;
+}
+
+/* --- Responsive --- */
+
+@media (max-width: 400px) {
+  .template-library__grid {
+    grid-template-columns: 1fr;
+  }
+}
