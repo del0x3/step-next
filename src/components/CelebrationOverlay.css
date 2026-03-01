@@ -1,0 +1,161 @@
+/* ========================================================================
+   CelebrationOverlay -- Celebration animation effects
+   Three tiers: step completion, milestone reached, new step unlocked
+   ======================================================================== */
+
+/* --- Container --- */
+
+.celebration-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10;
+  overflow: hidden;
+}
+
+
+/* ========================================================================
+   Tier 2: Milestone Banner
+   ======================================================================== */
+
+.celebration-overlay__banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.1));
+  border-bottom: 1px solid rgba(251, 191, 36, 0.3);
+  animation: banner-lifecycle 2100ms ease forwards;
+  z-index: 11;
+}
+
+.celebration-overlay__banner-text {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes banner-lifecycle {
+  /* Slide in: 0-300ms */
+  0% {
+    transform: translateY(-100%);
+    opacity: 1;
+  }
+  14.3% {
+    /* 300ms / 2100ms */
+    transform: translateY(0);
+    opacity: 1;
+  }
+  /* Hold: 300ms-1800ms */
+  85.7% {
+    /* 1800ms / 2100ms */
+    transform: translateY(0);
+    opacity: 1;
+  }
+  /* Fade out: 1800ms-2100ms */
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+}
+
+
+/* ========================================================================
+   Tier 1: Particle Burst (used for step + milestone completions)
+   Particles are positioned relative to the step node's dot.
+   ======================================================================== */
+
+.celebration-overlay__particles {
+  position: absolute;
+  pointer-events: none;
+}
+
+.celebration-overlay__particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  margin-top: -2px;
+  margin-left: -2px;
+  animation: particle-burst 600ms ease-out forwards;
+}
+
+@keyframes particle-burst {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--px), var(--py)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Particle color palette */
+.celebration-overlay__particle--0 { background: #818cf8; }
+.celebration-overlay__particle--1 { background: #34d399; }
+.celebration-overlay__particle--2 { background: #fbbf24; }
+.celebration-overlay__particle--3 { background: #f472b6; }
+.celebration-overlay__particle--4 { background: #60a5fa; }
+.celebration-overlay__particle--5 { background: #a78bfa; }
+.celebration-overlay__particle--6 { background: #fb923c; }
+.celebration-overlay__particle--7 { background: #2dd4bf; }
+
+
+/* ========================================================================
+   Tier 3: Unlock Micro-Toast
+   ======================================================================== */
+
+.celebration-overlay__toast {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(129, 140, 248, 0.3);
+  white-space: nowrap;
+  animation: toast-lifecycle 1500ms ease forwards;
+  z-index: 11;
+}
+
+.celebration-overlay__toast-text {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #818cf8;
+}
+
+@keyframes toast-lifecycle {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  20% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  80% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+}

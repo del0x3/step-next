@@ -1,0 +1,461 @@
+/* ========================================================================
+   StepNode — Base styles
+   ======================================================================== */
+
+.step-node {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  position: relative;
+  padding: 8px 0;
+  transition: opacity 0.4s ease, filter 0.4s ease;
+}
+
+.step-node__dot-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 40px;
+  position: relative;
+  z-index: 1;
+}
+
+.step-node__dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-node__dot:hover {
+  transform: scale(1.2);
+}
+
+/* --- Type colors (base, shared across states) --- */
+
+.step-node__dot--current {
+  background: #6366f1;
+  border-color: #818cf8;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+}
+
+.step-node__dot--free {
+  background: #10b981;
+  border-color: #34d399;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+}
+
+.step-node__dot--milestone {
+  background: #f59e0b;
+  border-color: #fbbf24;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+}
+
+.step-node__dot--locked {
+  background: #374151;
+  border-color: #4b5563;
+  box-shadow: none;
+  cursor: default;
+}
+
+/* --- Legacy completed state (when no visualState prop) --- */
+
+.step-node__dot--completed {
+  opacity: 0.5;
+}
+
+.step-node__dot--completed::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+}
+
+/* --- Content area --- */
+
+.step-node__content {
+  flex: 1;
+  padding-top: 0;
+  transition: filter 0.4s ease;
+}
+
+.step-node__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin: 0 0 4px 0;
+  transition: color 0.4s ease, opacity 0.4s ease;
+}
+
+.step-node__title--completed {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.step-node__description {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0 0 4px 0;
+}
+
+/* --- Badge --- */
+
+.step-node__badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.step-node__badge--current {
+  background: rgba(99, 102, 241, 0.2);
+  color: #818cf8;
+}
+
+.step-node__badge--free {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.step-node__badge--milestone {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+.step-node__badge--locked {
+  background: rgba(75, 85, 99, 0.2);
+  color: #6b7280;
+}
+
+/* --- Legacy locked node fog effect (backward compat) --- */
+
+.step-node--locked .step-node__content {
+  filter: blur(3px);
+  user-select: none;
+  pointer-events: none;
+}
+
+.step-node--locked .step-node__title {
+  color: #4b5563;
+}
+
+/* --- Delete button --- */
+
+.step-node__delete {
+  background: none;
+  border: none;
+  color: #4b5563;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.step-node:hover .step-node__delete {
+  opacity: 1;
+}
+
+.step-node__delete:hover {
+  color: #ef4444;
+}
+
+/* --- Checkmark SVG inside dot (for completed visual state) --- */
+
+.step-node__checkmark {
+  width: 12px;
+  height: 12px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+
+/* ========================================================================
+   Visual State: COMPLETED (.step-node--vs-completed)
+   Full color + checkmark in dot, opacity 1.0, no strikethrough
+   ======================================================================== */
+
+.step-node--vs-completed {
+  opacity: 1;
+}
+
+.step-node--vs-completed .step-node__dot {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.step-node--vs-completed .step-node__dot--current {
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+}
+
+.step-node--vs-completed .step-node__dot--free {
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.step-node--vs-completed .step-node__dot--milestone {
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+/* Override legacy completed ::after (white circle) — checkmark is rendered via JSX */
+.step-node--vs-completed .step-node__dot::after {
+  display: none;
+}
+
+.step-node--vs-completed .step-node__title {
+  text-decoration: none;
+  color: #9ca3af;
+}
+
+
+/* ========================================================================
+   Visual State: ACTIVE (.step-node--vs-active)
+   Pulsating dot, 24px size, bright glow, primary CTA
+   ======================================================================== */
+
+@keyframes vs-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+.step-node--vs-active .step-node__dot {
+  width: 24px;
+  height: 24px;
+  animation: vs-pulse 2s ease-in-out infinite;
+  cursor: pointer;
+}
+
+.step-node--vs-active .step-node__dot:hover {
+  /* Override base hover so pulse is not interrupted */
+  animation: vs-pulse 2s ease-in-out infinite;
+  transform: none;
+}
+
+.step-node--vs-active .step-node__dot--current {
+  background: #6366f1;
+  border-color: #a5b4fc;
+  box-shadow: 0 0 16px rgba(99, 102, 241, 0.7);
+}
+
+.step-node--vs-active .step-node__dot--free {
+  background: #10b981;
+  border-color: #6ee7b7;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.7);
+}
+
+.step-node--vs-active .step-node__dot--milestone {
+  background: #f59e0b;
+  border-color: #fde68a;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.7);
+}
+
+
+/* ========================================================================
+   Visual State: AVAILABLE (.step-node--vs-available)
+   70% opacity, tappable, reduced glow
+   ======================================================================== */
+
+.step-node--vs-available {
+  opacity: 0.7;
+}
+
+.step-node--vs-available .step-node__dot {
+  cursor: pointer;
+}
+
+.step-node--vs-available .step-node__dot--current {
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.3);
+}
+
+.step-node--vs-available .step-node__dot--free {
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+}
+
+.step-node--vs-available .step-node__dot--milestone {
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+}
+
+
+/* ========================================================================
+   Visual State: LOCKED (.step-node--vs-locked)
+   Grey dot, lock icon, 50% opacity, non-tappable
+   ======================================================================== */
+
+.step-node--vs-locked {
+  opacity: 0.5;
+}
+
+.step-node--vs-locked .step-node__dot {
+  background: #374151;
+  border-color: #4b5563;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Override type-specific colors so all locked dots look the same */
+.step-node--vs-locked .step-node__dot--current,
+.step-node--vs-locked .step-node__dot--free,
+.step-node--vs-locked .step-node__dot--milestone {
+  background: #374151;
+  border-color: #4b5563;
+  box-shadow: none;
+}
+
+.step-node--vs-locked .step-node__dot:hover {
+  transform: none;
+}
+
+/* Lock icon inside the dot */
+.step-node--vs-locked .step-node__dot::after {
+  content: '\1F512';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.step-node--vs-locked .step-node__title {
+  color: #4b5563;
+}
+
+
+/* ========================================================================
+   Visual State: HIDDEN (.step-node--vs-hidden)
+   Blurred, placeholder text, non-interactive
+   ======================================================================== */
+
+.step-node--vs-hidden {
+  pointer-events: none;
+  user-select: none;
+}
+
+.step-node--vs-hidden .step-node__dot {
+  background: #1f2937;
+  border-color: #374151;
+  box-shadow: none;
+  cursor: default;
+}
+
+/* Override type-specific colors */
+.step-node--vs-hidden .step-node__dot--current,
+.step-node--vs-hidden .step-node__dot--free,
+.step-node--vs-hidden .step-node__dot--milestone {
+  background: #1f2937;
+  border-color: #374151;
+  box-shadow: none;
+}
+
+.step-node--vs-hidden .step-node__dot:hover {
+  transform: none;
+}
+
+.step-node--vs-hidden .step-node__content {
+  filter: blur(6px);
+  user-select: none;
+  pointer-events: none;
+}
+
+.step-node--vs-hidden .step-node__title {
+  color: #374151;
+}
+
+
+/* ========================================================================
+   Celebration: COMPLETING (.step-node--completing)
+   Dot pulse on step completion -- Tier 1 animation
+   ======================================================================== */
+
+@keyframes step-complete-pulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  40% {
+    transform: scale(1.3);
+    filter: brightness(1.5);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+.step-node--completing .step-node__dot {
+  animation: step-complete-pulse 600ms ease-out;
+}
+
+/* Prevent hover transform from interfering with the pulse */
+.step-node--completing .step-node__dot:hover {
+  transform: none;
+}
+
+
+/* ========================================================================
+   Celebration: REVEALING (.step-node--revealing)
+   New step unlocked -- Tier 3 animation
+   ======================================================================== */
+
+@keyframes step-reveal-fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes step-reveal-glow {
+  0% {
+    box-shadow: 0 0 0px rgba(129, 140, 248, 0);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--reveal-glow-color, rgba(129, 140, 248, 0.6));
+  }
+  100% {
+    box-shadow: 0 0 8px var(--reveal-glow-color, rgba(129, 140, 248, 0.3));
+  }
+}
+
+.step-node--revealing {
+  animation: step-reveal-fade 400ms ease-out forwards;
+}
+
+.step-node--revealing .step-node__dot {
+  animation: step-reveal-glow 800ms ease-out forwards;
+}
+
+/* Type-specific glow colors for reveal */
+.step-node--revealing .step-node__dot--current {
+  --reveal-glow-color: rgba(99, 102, 241, 0.6);
+}
+
+.step-node--revealing .step-node__dot--free {
+  --reveal-glow-color: rgba(16, 185, 129, 0.6);
+}
+
+.step-node--revealing .step-node__dot--milestone {
+  --reveal-glow-color: rgba(245, 158, 11, 0.6);
+}
