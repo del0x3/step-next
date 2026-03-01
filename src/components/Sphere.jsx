@@ -2,21 +2,38 @@ import { useState, useCallback, useRef } from 'react';
 import StepNode from './StepNode';
 import AddStepForm from './AddStepForm';
 import CelebrationOverlay from './CelebrationOverlay';
+import { computeVisualStates, countHiddenSteps, findRevealedStepIds } from '../utils/fogEngine';
 import './Sphere.css';
 
-function getProgressText(completed, total) {
+/**
+ * Builds the progress text including hidden step count when applicable.
+ * Examples:
+ *   "Крок 1 з 7 — почни зараз!"
+ *   "Крок 3 з 7 — ще лише 4! (2 приховано)"
+ */
+function getProgressText(completed, total, hiddenCount) {
   if (total === 0) return '';
   if (completed === total) return 'Всі кроки виконано!';
 
   const percent = completed / total;
+  let text;
 
   if (percent < 0.5) {
-    if (completed === 0) return `Крок 1 з ${total} — почни зараз!`;
-    return `Крок ${completed} з ${total} — вже ${completed} виконано!`;
+    if (completed === 0) {
+      text = `Крок 1 з ${total} — почни зараз!`;
+    } else {
+      text = `Крок ${completed} з ${total} — вже ${completed} виконано!`;
+    }
+  } else {
+    const remaining = total - completed;
+    text = `Крок ${completed} з ${total} — ще лише ${remaining}!`;
   }
 
-  const remaining = total - completed;
-  return `Крок ${completed} з ${total} — ще лише ${remaining}!`;
+  if (hiddenCount > 0) {
+    text += ` (${hiddenCount} приховано)`;
+  }
+
+  return text;
 }
 
 /**
@@ -32,44 +49,31 @@ function areCelebrationsEnabled() {
   }
 }
 
-/**
- * Computes the visual state for each step based on its position and completion.
- * completed steps → "completed"
- * first non-completed → "active"
- * second non-completed → "available"
- * rest non-completed → "locked"
- * type "locked" steps → "hidden"
- */
-function getVisualState(step, sortedSteps) {
-  if (step.type === 'locked' && !step.completed) return 'hidden';
-  if (step.completed) return 'completed';
-
-  const incompleteSteps = sortedSteps.filter(s => !s.completed && s.type !== 'locked');
-  const idx = incompleteSteps.findIndex(s => s.id === step.id);
-
-  if (idx === 0) return 'active';
-  if (idx === 1) return 'available';
-  return 'locked';
-}
-
 export default function Sphere({ sphere, onUpdate, onDelete }) {
   // celebration: { type: "step"|"milestone"|"unlock", stepId: string, dotPosition?: {...} } | null
   const [celebration, setCelebration] = useState(null);
   // Track which step IDs are currently in the completing animation
   const [completingStepId, setCompletingStepId] = useState(null);
+  // Track which step IDs are currently in the revealing (unlock) animation
+  const [revealingStepIds, setRevealingStepIds] = useState([]);
+  // Store previous visual states for reveal detection
+  const prevVisualStatesRef = useRef(null);
   const sphereRef = useRef(null);
 
-  const sortedSteps = [...sphere.steps].sort((a, b) => a.order - b.order);
+  // Compute fog-of-war visual states (pure view-layer, not persisted)
+  const stepsWithVisualState = computeVisualStates(sphere.steps);
+  const hiddenCount = countHiddenSteps(stepsWithVisualState);
 
   const totalSteps = sphere.steps.length;
-  const completedCount = sphere.steps.filter(s => s.completed).length;
+  const completedCount = sphere.steps.filter((s) => s.completed).length;
   const allCompleted = totalSteps > 0 && completedCount === totalSteps;
-  const progressText = getProgressText(completedCount, totalSteps);
+  const progressText = getProgressText(completedCount, totalSteps, hiddenCount);
 
   const level = Math.max(1, completedCount);
-  const progressPercent = totalSteps > 0
-    ? Math.max(15, Math.round((completedCount / totalSteps) * 100))
-    : 15;
+  const progressPercent =
+    totalSteps > 0
+      ? Math.max(15, Math.round((completedCount / totalSteps) * 100))
+      : 15;
 
   /**
    * Computes the dot position relative to the sphere container
@@ -97,19 +101,30 @@ export default function Sphere({ sphere, onUpdate, onDelete }) {
     setCompletingStepId(null);
   }, []);
 
+  /**
+   * Clears the revealing animation state for a set of step IDs.
+   * Called after the reveal animation duration (1500ms).
+   */
+  function clearRevealingSteps(stepIds) {
+    setRevealingStepIds((prev) =>
+      prev.filter((id) => !stepIds.includes(id))
+    );
+  }
+
   function handleToggleComplete(stepId) {
-    const step = sphere.steps.find(s => s.id === stepId);
+    const step = sphere.steps.find((s) => s.id === stepId);
     const isCompleting = step && !step.completed;
 
-    const updated = {
-      ...sphere,
-      steps: sphere.steps.map((s) =>
-        s.id === stepId ? { ...s, completed: !s.completed } : s
-      ),
-    };
+    // Snapshot previous visual states BEFORE the update (for reveal detection)
+    const prevStates = stepsWithVisualState;
+
+    const updatedSteps = sphere.steps.map((s) =>
+      s.id === stepId ? { ...s, completed: !s.completed } : s
+    );
+    const updated = { ...sphere, steps: updatedSteps };
     onUpdate(updated);
 
-    // Fire celebration if the step is being completed (not un-completed)
+    // Fire celebration + reveal detection only when completing (not un-completing)
     if (isCompleting && areCelebrationsEnabled()) {
       const dotPosition = getDotPosition(stepId);
       const isMilestone = step.type === 'milestone';
@@ -120,7 +135,38 @@ export default function Sphere({ sphere, onUpdate, onDelete }) {
         stepId,
         dotPosition,
       });
+
+      // Compute next visual states to detect reveals
+      const nextStates = computeVisualStates(updatedSteps);
+      const revealed = findRevealedStepIds(prevStates, nextStates);
+
+      if (revealed.length > 0) {
+        // Small delay so the completion animation starts first,
+        // then the reveal kicks in
+        setTimeout(() => {
+          setRevealingStepIds(revealed);
+
+          // Find the first revealed step to position the unlock toast
+          const firstRevealedId = revealed[0];
+          const revealDotPosition = getDotPosition(firstRevealedId);
+
+          // Show unlock celebration (Tier 3)
+          setCelebration({
+            type: 'unlock',
+            stepId: firstRevealedId,
+            dotPosition: revealDotPosition,
+          });
+        }, 650); // After the step-complete pulse (600ms)
+
+        // Clear revealing state after the reveal animation completes
+        setTimeout(() => {
+          clearRevealingSteps(revealed);
+        }, 650 + 1500); // delay + reveal animation duration
+      }
     }
+
+    // Store current states as "previous" for next toggle
+    prevVisualStatesRef.current = stepsWithVisualState;
   }
 
   function handleDeleteStep(stepId) {
@@ -132,7 +178,10 @@ export default function Sphere({ sphere, onUpdate, onDelete }) {
   }
 
   function handleAddStep({ title, description, type, milestone }) {
-    const maxOrder = sphere.steps.reduce((max, s) => Math.max(max, s.order), -1);
+    const maxOrder = sphere.steps.reduce(
+      (max, s) => Math.max(max, s.order),
+      -1
+    );
     const newStep = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
       title,
@@ -156,8 +205,12 @@ export default function Sphere({ sphere, onUpdate, onDelete }) {
           <h2 className="sphere__name">{sphere.name}</h2>
           <span className="sphere__level">Level {level}</span>
         </div>
-        <button className="sphere__delete" onClick={() => onDelete(sphere.id)} title="Видалити сферу">
-          ×
+        <button
+          className="sphere__delete"
+          onClick={() => onDelete(sphere.id)}
+          title="Видалити сферу"
+        >
+          &times;
         </button>
       </div>
 
@@ -169,20 +222,23 @@ export default function Sphere({ sphere, onUpdate, onDelete }) {
       </div>
 
       {progressText && (
-        <p className={`sphere__progress-text${allCompleted ? ' sphere__progress-text--completed' : ''}`}>
+        <p
+          className={`sphere__progress-text${allCompleted ? ' sphere__progress-text--completed' : ''}`}
+        >
           {progressText}
         </p>
       )}
 
       <div className="sphere__timeline">
-        {sortedSteps.map((step) => (
+        {stepsWithVisualState.map((step) => (
           <div key={step.id} data-step-id={step.id}>
             <StepNode
               step={step}
               onToggleComplete={handleToggleComplete}
               onDelete={handleDeleteStep}
               completing={completingStepId === step.id}
-              visualState={getVisualState(step, sortedSteps)}
+              revealing={revealingStepIds.includes(step.id)}
+              visualState={step.visualState}
             />
           </div>
         ))}
