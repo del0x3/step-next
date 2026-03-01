@@ -27,6 +27,18 @@
 - PM brief delivered to: .claude/agent-memory/pm-pro/ba-brief-2026-03-01.md
 - User must manually switch to pm-pro agent to process the brief
 
+## Sprint 1 Review (2026-03-01)
+- Tasks delivered: 01 (Visual Node States), 03 (Endowed Progress), 04 (Step Count Progress)
+- CRITICAL BUG: Sphere.jsx never passes visualState prop to StepNode -- Task 01 is dead code
+- Task 03 + 04 work correctly and integrate well with each other
+- `level` field in sphere data model is written but never read (dead data)
+- Review file: .claude/agent-memory/ba-pro/sprint1-review-2026-03-01.md
+
+## Lessons Learned
+- When tasks touch different files in a pipeline (StepNode vs Sphere), the wiring between them can fall through the cracks -- always verify integration points in specs
+- Parallel DEV agents editing shared files did NOT cause merge conflicts (good spec scoping by PM)
+- DEV made good localization decisions (em-dash typography) beyond spec requirements
+
 ## Competitors (Quick Reference)
 - Skilltree: 50K dl, closest locked-node UX, weak visual polish
 - Habitica: 4M users, deep RPG, no locked future levels

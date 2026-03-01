@@ -1,5 +1,7 @@
+import { useState, useCallback, useRef } from 'react';
 import StepNode from './StepNode';
 import AddStepForm from './AddStepForm';
+import CelebrationOverlay from './CelebrationOverlay';
 import './Sphere.css';
 
 function getProgressText(completed, total) {
@@ -17,20 +19,88 @@ function getProgressText(completed, total) {
   return `Крок ${completed} з ${total} — ще лише ${remaining}!`;
 }
 
+/**
+ * Checks whether celebration animations are enabled.
+ * Respects the localStorage flag 'step-next-celebrations'.
+ * Default: enabled (true).
+ */
+function areCelebrationsEnabled() {
+  try {
+    return localStorage.getItem('step-next-celebrations') !== 'false';
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * Computes the visual state for each step based on its position and completion.
+ * completed steps → "completed"
+ * first non-completed → "active"
+ * second non-completed → "available"
+ * rest non-completed → "locked"
+ * type "locked" steps → "hidden"
+ */
+function getVisualState(step, sortedSteps) {
+  if (step.type === 'locked' && !step.completed) return 'hidden';
+  if (step.completed) return 'completed';
+
+  const incompleteSteps = sortedSteps.filter(s => !s.completed && s.type !== 'locked');
+  const idx = incompleteSteps.findIndex(s => s.id === step.id);
+
+  if (idx === 0) return 'active';
+  if (idx === 1) return 'available';
+  return 'locked';
+}
+
 export default function Sphere({ sphere, onUpdate, onDelete }) {
+  // celebration: { type: "step"|"milestone"|"unlock", stepId: string, dotPosition?: {...} } | null
+  const [celebration, setCelebration] = useState(null);
+  // Track which step IDs are currently in the completing animation
+  const [completingStepId, setCompletingStepId] = useState(null);
+  const sphereRef = useRef(null);
+
   const sortedSteps = [...sphere.steps].sort((a, b) => a.order - b.order);
 
   const totalSteps = sphere.steps.length;
-  const completedSteps = sphere.steps.filter(s => s.completed).length;
-  const allCompleted = totalSteps > 0 && completedSteps === totalSteps;
-  const progressText = getProgressText(completedSteps, totalSteps);
+  const completedCount = sphere.steps.filter(s => s.completed).length;
+  const allCompleted = totalSteps > 0 && completedCount === totalSteps;
+  const progressText = getProgressText(completedCount, totalSteps);
 
-  const level = Math.max(1, completedSteps);
+  const level = Math.max(1, completedCount);
   const progressPercent = totalSteps > 0
-    ? Math.max(15, Math.round((completedSteps / totalSteps) * 100))
+    ? Math.max(15, Math.round((completedCount / totalSteps) * 100))
     : 15;
 
+  /**
+   * Computes the dot position relative to the sphere container
+   * by finding the dot DOM element for a given step ID.
+   */
+  function getDotPosition(stepId) {
+    if (!sphereRef.current) return null;
+
+    const sphereRect = sphereRef.current.getBoundingClientRect();
+    const dotEl = sphereRef.current.querySelector(
+      `[data-step-id="${stepId}"] .step-node__dot`
+    );
+
+    if (!dotEl) return null;
+
+    const dotRect = dotEl.getBoundingClientRect();
+    return {
+      top: dotRect.top - sphereRect.top + dotRect.height / 2,
+      left: dotRect.left - sphereRect.left + dotRect.width / 2,
+    };
+  }
+
+  const handleCelebrationComplete = useCallback(() => {
+    setCelebration(null);
+    setCompletingStepId(null);
+  }, []);
+
   function handleToggleComplete(stepId) {
+    const step = sphere.steps.find(s => s.id === stepId);
+    const isCompleting = step && !step.completed;
+
     const updated = {
       ...sphere,
       steps: sphere.steps.map((s) =>
@@ -38,6 +108,19 @@ export default function Sphere({ sphere, onUpdate, onDelete }) {
       ),
     };
     onUpdate(updated);
+
+    // Fire celebration if the step is being completed (not un-completed)
+    if (isCompleting && areCelebrationsEnabled()) {
+      const dotPosition = getDotPosition(stepId);
+      const isMilestone = step.type === 'milestone';
+
+      setCompletingStepId(stepId);
+      setCelebration({
+        type: isMilestone ? 'milestone' : 'step',
+        stepId,
+        dotPosition,
+      });
+    }
   }
 
   function handleDeleteStep(stepId) {
@@ -67,7 +150,7 @@ export default function Sphere({ sphere, onUpdate, onDelete }) {
   }
 
   return (
-    <div className="sphere">
+    <div className="sphere" ref={sphereRef}>
       <div className="sphere__header">
         <div className="sphere__title-row">
           <h2 className="sphere__name">{sphere.name}</h2>
@@ -93,18 +176,29 @@ export default function Sphere({ sphere, onUpdate, onDelete }) {
 
       <div className="sphere__timeline">
         {sortedSteps.map((step) => (
-          <StepNode
-            key={step.id}
-            step={step}
-            onToggleComplete={handleToggleComplete}
-            onDelete={handleDeleteStep}
-          />
+          <div key={step.id} data-step-id={step.id}>
+            <StepNode
+              step={step}
+              onToggleComplete={handleToggleComplete}
+              onDelete={handleDeleteStep}
+              completing={completingStepId === step.id}
+              visualState={getVisualState(step, sortedSteps)}
+            />
+          </div>
         ))}
       </div>
 
       <div className="sphere__actions">
         <AddStepForm onAdd={handleAddStep} />
       </div>
+
+      {celebration && (
+        <CelebrationOverlay
+          type={celebration.type}
+          onComplete={handleCelebrationComplete}
+          dotPosition={celebration.dotPosition}
+        />
+      )}
     </div>
   );
 }

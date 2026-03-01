@@ -154,7 +154,7 @@ function renderDotContent(visualState) {
   return null;
 }
 
-export default function StepNode({ step, onToggleComplete, onDelete, visualState }) {
+export default function StepNode({ step, onToggleComplete, onDelete, visualState, completing, revealing }) {
   const isClickable = isDotClickable(step, visualState);
 
   function handleDotClick() {
@@ -166,7 +166,7 @@ export default function StepNode({ step, onToggleComplete, onDelete, visualState
   const badge = step.type === 'milestone' ? step.milestone : TYPE_LABELS[step.type];
 
   return (
-    <div className={buildRootClassName(step, visualState)}>
+    <div className={buildRootClassName(step, visualState, { completing, revealing })}>
       <div className="step-node__dot-wrapper">
         <div
           className={buildDotClassName(step, visualState)}

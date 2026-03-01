@@ -19,6 +19,17 @@
   - Locked: grey dot, lock emoji ::after, 50% opacity, cursor not-allowed
   - Hidden: pointer-events none, blur(6px) content, placeholder "------" title
 
+- **Task 02: Celebration/Unlock Animations** - DONE
+  - New files: CelebrationOverlay.jsx, CelebrationOverlay.css
+  - Tier 1 (step completion): dot pulse scale 1->1.3->1 (600ms) + 8 particle burst
+  - Tier 2 (milestone): Tier 1 + gold gradient banner "MILESTONE REACHED" (2100ms)
+  - Tier 3 (unlock): .step-node--revealing fade-in + glow + micro-toast (1500ms)
+  - StepNode.jsx: new props `completing`, `revealing` -> CSS classes --completing, --revealing
+  - Sphere.jsx: celebration state tracking, getDotPosition via data-step-id + getBoundingClientRect
+  - localStorage flag: 'step-next-celebrations' !== 'false' to disable
+  - Sphere.css: added position:relative + overflow:hidden for overlay containment
+  - All pure CSS animations, no external libraries
+
 ## Architecture Notes
 - StepNode helper functions extracted: buildRootClassName, buildDotClassName, getDotTitle, etc.
 - Legacy `.step-node--locked` and `.step-node__dot--completed` classes preserved for backward compat
